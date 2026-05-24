@@ -1,0 +1,157 @@
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Type checkers / linters
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.pyre/
+
+# pytest
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+
+# =============================================================================
+# Editors and IDEs
+# =============================================================================
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+\#*\#
+.\#*
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# =============================================================================
+# OS-specific
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# Secrets / local config
+# =============================================================================
+.env
+.env.local
+*.key
+*.pem
+secrets/
+config.local.*
+
+# =============================================================================
+# Large files/directories
+# =============================================================================
+# --- Datasets & model files ---
+data/
+mano/
+!data/.gitkeep
+!mano/.gitkeep
+
+# --- Training outputs ---
+outputs/
+checkpoints/
+runs/
+logs/
+
+# --- Model weights ---
+*.ckpt
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.onnx
+
+# --- Experiment tracking ---
+wandb/
+lightning_logs/
+tb_logs/
+tensorboard/
+events.out.tfevents.*
+
+# --- Large data formats ---
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.lmdb
+*.mdb
+
+# --- Media ---
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# --- Archives ---
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# =============================================================================
+# Project scratch
+# =============================================================================
+scratch/
+tmp/
+notebooks/scratch_*.ipynb

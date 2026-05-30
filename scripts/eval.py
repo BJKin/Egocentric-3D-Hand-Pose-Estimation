@@ -48,8 +48,8 @@ EVAL_DATASETS = {
 }
 
 # possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "resnet101"
-CKPT = Path("../logs/resnet101/0529-1544_bs32_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
+BACKBONE = "convnext_l"
+CKPT = Path("../logs/convnext_l/0529-2101_bs8_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
 
 BATCH_SIZE = 32
 

@@ -32,11 +32,11 @@ LOG_EVERY = 50
 SEED = 1
 
 # possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "resnet101"
+BACKBONE = "convnext_l"
 # possible training sets: ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset
 TRAIN_DATASETS = [ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset]
 
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 EPOCHS = 100
 LR = 1e-5
 

@@ -104,12 +104,13 @@ data/
 mano/
 !data/.gitkeep
 !mano/.gitkeep
+data_verification/
+data_reduced/
 
 # --- Training outputs ---
 outputs/
-checkpoints/
+tests/
 runs/
-logs/
 
 # --- Model weights ---
 *.ckpt
@@ -124,7 +125,6 @@ wandb/
 lightning_logs/
 tb_logs/
 tensorboard/
-events.out.tfevents.*
 
 # --- Large data formats ---
 *.h5

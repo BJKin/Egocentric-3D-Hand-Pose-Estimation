@@ -5,12 +5,12 @@
     - [MoblieVIT-S](https://arxiv.org/abs/2110.02178)
     - [ResNet-101](https://arxiv.org/abs/1512.03385)
     - [ConvNeXt-L](https://arxiv.org/abs/2201.03545)
-    - [DF-Mamba](https://arxiv.org/abs/2512.02727)
   - Mirroring the training/evaluation methodology from WildHands we:
-    - Use an egocentric split of the [ARCTIC](https://github.com/zc-alexfan/arctic/blob/master/docs/setup.md), [AssemblyHands](https://assemblyhands.github.io/), [Epic-Kitchens](https://epic-kitchens.github.io/VISOR/), [Ego4D](https://ego4d-data.org/docs/start-here/) for training.
+    - Use an egocentric split of the [ARCTIC](https://arctic.is.tue.mpg.de/index.html), [AssemblyHands](https://assemblyhands.github.io/), [Epic-Kitchens](https://epic-kitchens.github.io/VISOR/), [Ego4D](https://ego4d-data.org/docs/start-here/) for training.
     - Conduct zero-shot evaluation on the [H2O](https://taeinkwon.com/projects/h2o/), [AssemblyHands](https://assemblyhands.github.io/), [EPIC-HandKps](https://drive.google.com/drive/folders/18hvFlt3rBl2vjSGsFh1kRWPK_mjLCAZc?usp=sharing) and [Ego-Exo4D](https://ego4d-data.org/docs/start-here/) datasets
 
 # Setup
+
 ## Prerequisites
 
 - **NVIDIA GPU**
@@ -27,14 +27,12 @@ cd Egocentric-3D-Hand-Pose-Estimation
 
 This project targets the following stack:
 
-| Component         | Version |
-|-------------------|---------|
-| Python            | 3.10    |
-| CUDA Toolkit      | 11.6    |
-| PyTorch           | 1.13.0  |
-| PyTorch3D         | 0.7.3   |
-| PyTorch Lightning | 2.0.0   |
-| aitviewer         | 1.8.0   |
+| Component    | Version |
+|--------------|---------|
+| Python       | 3.10    |
+| CUDA Toolkit | 11.6    |
+| PyTorch      | 1.13.0  |
+| PyTorch3D    | 0.7.3   |
 
 All commands below assume a PowerShell session with conda available. If running `conda` errors out, you'll need to wire it up once with `conda init powershell` from an Anaconda Prompt and reopen PowerShell.
 
@@ -45,9 +43,10 @@ All commands below assume a PowerShell session with conda available. If running 
 Grab the Windows installer from NVIDIA's [CUDA Toolkit 11.6 download page](https://developer.nvidia.com/cuda-11-6-0-download-archive) and run it. Once it finishes, confirm the toolchain is wired up correctly:
 
 ```powershell
-nvcc --version       # expect: Cuda compilation tools, release 11.6
-Get-Command nvcc     # shows which nvcc.exe is being picked up
+nvcc --version       
+Get-Command nvcc     
 ```
+Should print `Cuda compilation tools, release 11.6` and which nvcc.exe is being picked up.
 
 A common pitfall is having multiple CUDA versions installed and the wrong one shadowing 11.6 on PATH. Force the correct one for this session:
 
@@ -86,7 +85,7 @@ Then close and reopen your regular PowerShell.
 ### Step 3 - PyTorch and PyTorch3D
 
 PyTorch installs cleanly from conda. PyTorch3D does not, the `pytorch3d` conda
-channel has no Windows builds for 0.7.3, and pip-installing from source on Windows
+channel has no Windows builds for 0.7.3, and pip installing from source on Windows
 requires a specific toolchain. The recipe below works.
 
 #### 3a. Install PyTorch
@@ -105,9 +104,7 @@ Three things need to be in place before pip can build pytorch3d:
   <https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022>.
 
 - **An older MSVC toolset (v14.38).** CUDA 11.6's `nvcc` rejects newer MSVC
-  versions (14.40+) with a hard `unsupported Microsoft Visual Studio version`
-  error. The `-allow-unsupported-compiler` flag that's commonly suggested does
-  not work for this stack. The reliable fix is to install an older toolset
+  versions (14.40+). The reliable fix is to install an older toolset
   alongside the default one:
   1. Open the Visual Studio Installer (search "Visual Studio Installer" in Start).
   2. Click Modify on "Visual Studio Build Tools 2022."
@@ -120,9 +117,7 @@ Three things need to be in place before pip can build pytorch3d:
 
 #### 3c. Build pytorch3d from source
 
-Open **x64 Native Tools Command Prompt for VS 2022** from the Start menu — not
-regular PowerShell, and not the plain "Developer Command Prompt" (that one
-initializes a 32-bit environment, which won't work). The prompt's header should
+Open **x64 Native Tools Command Prompt for VS 2022** from the Start menu. The prompt's header should
 read `Environment initialized for: 'x64'`.
 
 In that prompt:
@@ -155,12 +150,9 @@ Should print `0.7.3`, then `True` and the GPU name.
 
 ### Step 4 - Remaining Python packages
 
-The default install path fights with PyTorch 1.13. Both `pytorch_lightning` and
-`torchmetrics` will try to drag torch forward to 2.x, which breaks the
-pytorch3d build from Step 3. A pip constraints file pins the versions that
-matter so the resolver can't upgrade them.
-
-Then install in this order:
+`constraints.txt` pins `torch` and `torchvision` to the versions pytorch3d was
+built against in Step 3, so pip can't accidentally upgrade them. Install in this
+order:
 
 ```powershell
 conda install pytorch=1.13.0 torchvision=0.14.0 pytorch-cuda=11.6 -c pytorch -c nvidia -y --force-reinstall
@@ -168,28 +160,26 @@ pip install --no-build-isolation chumpy
 pip install -c constraints.txt -r requirements.txt
 ```
 
-Verify nothing got clobbered and CUDA is wired up::
+Verify nothing got clobbered and CUDA is wired up:
 
 ```powershell
 python -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.version.cuda)"
 python -c "import pytorch3d; print(pytorch3d.__version__)"
 ```
 
-Should print `1.13.0 True 11.6` and `0.7.3`. If `cuda.is_available()` returns
-False, you've got a CPU-only torch build, run the conda command again.
-
+Should print `1.13.0 True 11.6` and `0.7.3`.
 
 ---
 
 ### Step 5 - smplx patch
 
-The default `smplx` build returns 16 joints, but the model expects 21. The fix is a one-line uncomment in `body_models.py` inside the installed package.
+The default `smplx` build returns 16 joints, but the model expects 21.
 
 Locate the file and open it for editing:
 
 ```powershell
 $smplx_file = python -c "import smplx, os; print(os.path.join(os.path.dirname(smplx.__file__), 'body_models.py'))"
-notepad $smplx_file       # or: code $smplx_file
+notepad $smplx_file       
 ```
 
 Jump to line 1681 and uncomment:
@@ -198,7 +188,7 @@ Jump to line 1681 and uncomment:
 joints = self.vertex_joint_selector(vertices, joints)
 ```
 
-Save and close. Setup is done.
+Save and close. The environment is ready.
 
 ## 3. Download the data
 | Dataset           | Role                        | Access                                                          |
@@ -227,7 +217,7 @@ The MANO model files drive the 3D hand mesh regression head. Register at [mano.i
 
 ### Step 3 - Pretrained Weights for Initialization
 
-WildHands is initialized from an ArcticNet checkpoint pretrained on the allocentric split of ARCTIC. Grab the checkpoint from the [ARCTIC data page](https://github.com/zc-alexfan/arctic/blob/master/docs/data/README.md) and stash it under `data/checkpoints/`.
+Only the `resnet50-arctic` backbone needs this. It initializes from an ArcticNet checkpoint pretrained on the allocentric split of ARCTIC. Every other backbone (including the default `resnet50`) initializes from ImageNet. To use `resnet50-arctic`, grab the checkpoint from the [ARCTIC data page](https://github.com/zc-alexfan/arctic/blob/master/docs/data/README.md) and place it at `data/arctic/arctic_sf_allocentric/last.ckpt`.
 
 ### Expected Directory Layout
 
@@ -236,37 +226,83 @@ After everything is downloaded, the repo should look like this:
 ```
 Egocentric-3D-Hand-Pose-Estimation/
 ├── data/
-│   ├── arctic/            # raw ARCTIC frames
-│   ├── assembly/          # raw AssemblyHands frames
-│   ├── h2o/               # raw H2O frames
-│   ├── visor/             # raw Epic-Kitchens VISOR frames
-│   ├── ego4d/             # raw Ego4D + Ego-Exo4D frames
-│   ├── epic_hands/        # preprocessed pkls
-│   ├── ego4d_hands/       # preprocessed pkls for Ego4D/Ego-Exo4D
-│   └── checkpoints/       # ArcticNet pretrained weights
+│   ├── arctic/            
+│   │   ├── arctic_sf_allocentric/    # arctic_sf trained on allocentric data final model checkpoint
+│   │   └── data/                     # raw ARCTIC frames
+│   ├── assembly/                     
+│   │   ├── annotations/              # annotations for assembly frames
+│   │   └── ego_images_rectified/     # raw AssemblyHands frames
+│   ├── h2o/               
+│   │   ├── label_split/              # train/val/test split lists
+│   │   ├── mano_labels_v1_1/         # updated MANO hand parameters
+│   │   ├── object/                   # object meshes for the 8 objects
+│   │   └── subject3_ego/             # validation set: frames + depth + annotations
+│   ├── visor/                                  
+│   │   ├── annotations/              # annotations for Epic-Kitchens VISOR frames
+│   │   └── rgb_frames/               # raw Epic-Kitchens VISOR frames
+│   ├── ego4d/             
+│   │   ├── ego4d_frames/             # raw Ego4D frames
+│   │   └── v1/                       # raw Ego4D videos
+│   ├── epic_hands/                   # preprocessed pkls for Epic-Kitchens VISOR
+│   └── ego4d_hands/                  # preprocessed pkls for Ego4D/Ego-Exo4D
+│
+├── logs/                  # model tensorboard logs and checkpoints
 ├── mano/                  # MANO_RIGHT.pkl, MANO_LEFT.pkl
+├── notebooks/             # model performance visualizations
+├── references/            # implementation references
+├── results/               # results of evaluation script
+├── scripts/               # model training + eval + visualizations
 ├── src/                   # model code
-├── scripts/               # training + eval entrypoints
+├── utilities/             # data processing scripts
+├── vis_out/               # results of visualization script
 ├── requirements.txt
+├── constraints.txt
 └── README.md
 ```
 
 
-## 4. Set Environment Variables
+## 4. Run
 
-The training and evaluation scripts read paths from `MANO_DIR` and `DATA_DIR`. Set them once per shell session:
+The training, evaluation, and visualization scripts are configured by editing the constants in the `config` block near the top of the file, then run from inside the `scripts/` directory.
 
-```powershell
-$env:MANO_DIR = "$PWD\mano"
-$env:DATA_DIR = "$PWD\data"
-```
-
-To make them stick across reboots (open a new PowerShell window afterward for the change to apply):
+First build the ~9 GB reduced subset the loaders read from. From the repo root:
 
 ```powershell
-setx MANO_DIR "$PWD\mano"
-setx DATA_DIR "$PWD\data"
+conda activate Ego3D_env
+python scripts/build_reduced_dataset.py
 ```
+
+Then `cd scripts` and run whichever stage you need:
+
+```powershell
+conda activate Ego3D_env
+cd scripts
+
+# Train
+python train.py
+
+# Evaluate zero-shot
+python eval.py
+
+# Visualize
+python visualize.py
+```
+
+### Monitor training (TensorBoard)
+
+`train.py` logs train/val loss, each term's loss, and the gradient norm to each run's own directory at `logs/<backbone>/<run>/`. Launch TensorBoard from the repo root, point it at a single run to inspect one checkpoint's curves, or at `logs/` to compare every run side by side:
+
+```powershell
+conda activate Ego3D_env
+
+# one run
+tensorboard --logdir logs/mobilenet_v3_l/0529-0143_bs32_lr1e-05_ep100_seed1
+
+# every run
+tensorboard --logdir logs
+```
+
+Then open the printed URL.
 
 # Acknowledgements
 

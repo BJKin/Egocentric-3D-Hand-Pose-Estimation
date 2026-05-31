@@ -5,6 +5,7 @@
     - [MoblieVIT-S](https://arxiv.org/abs/2110.02178)
     - [ResNet-101](https://arxiv.org/abs/1512.03385)
     - [ConvNeXt-L](https://arxiv.org/abs/2201.03545)
+    - [Wave-ViT-S](https://arxiv.org/abs/2207.04978) (vendored locally, not from timm — the wavelet-based backbone; see Setup Step 3 for its extra weight + dependency)
   - Mirroring the training/evaluation methodology from WildHands we:
     - Use an egocentric split of the [ARCTIC](https://arctic.is.tue.mpg.de/index.html), [AssemblyHands](https://assemblyhands.github.io/), [Epic-Kitchens](https://epic-kitchens.github.io/VISOR/), [Ego4D](https://ego4d-data.org/docs/start-here/) for training.
     - Conduct zero-shot evaluation on the [H2O](https://taeinkwon.com/projects/h2o/), [AssemblyHands](https://assemblyhands.github.io/), [EPIC-HandKps](https://drive.google.com/drive/folders/18hvFlt3rBl2vjSGsFh1kRWPK_mjLCAZc?usp=sharing) and [Ego-Exo4D](https://ego4d-data.org/docs/start-here/) datasets
@@ -218,6 +219,8 @@ The MANO model files drive the 3D hand mesh regression head. Register at [mano.i
 ### Step 3 - Pretrained Weights for Initialization
 
 Only the `resnet50-arctic` backbone needs this. It initializes from an ArcticNet checkpoint pretrained on the allocentric split of ARCTIC. Every other backbone (including the default `resnet50`) initializes from ImageNet. To use `resnet50-arctic`, grab the checkpoint from the [ARCTIC data page](https://github.com/zc-alexfan/arctic/blob/master/docs/data/README.md) and place it at `data/arctic/arctic_sf_allocentric/last.ckpt`.
+
+The `wave_vit_s` backbone also needs an init checkpoint. Wave-ViT is vendored locally (`src/wavevit.py`, `src/torch_wavelets.py`; it is not on the timm/HF hub), so its ImageNet weights are a manual download: grab the **Wave-ViT-S @224** checkpoint from the [Wave-ViT repo](https://github.com/YehLi/ImageNetModel) (Google Drive / Baidu) and place it at `data_reduced/wavevit/wavevit_s.pth`. It also requires the `PyWavelets` package (already pinned in `requirements.txt`, installed in Step 4). This init is only used for training (`pretrained=True`); evaluation and visualization load the trained WildHands checkpoint instead, so they do not need the `.pth`.
 
 ### Expected Directory Layout
 

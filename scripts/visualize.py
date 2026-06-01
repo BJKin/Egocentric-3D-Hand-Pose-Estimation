@@ -57,8 +57,8 @@ DATASETS = {
 }
 
 # possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "resnet101"
-CKPT = Path("../logs/resnet101/0529-1544_bs32_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
+BACKBONE = "mobilevit_s"
+CKPT = Path("../logs/mobilevit_s/0530-2320_bs8_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
 SOURCE = "pred"               # "pred" (model output) or "gt" (ground truth mesh)
 SHUFFLE = False               # pick a random sample per dataset instead of the first
 SEED = 0

@@ -16,6 +16,7 @@ _TIMM_MODELS = {
     "mobilenet_v3_l":  "mobilenetv3_large_100.miil_in21k_ft_in1k",
     "convnext_l":      "convnext_large.fb_in22k_ft_in1k",
     "mobilevit_s":     "mobilevit_s.cvnets_in1k",
+    "swinv2_b":        "swinv2_base_window8_256.ms_in1k"
 }
 
 ARCTIC_CKPT = Path("../data_reduced/arctic/arctic_sf_allocentric/last.ckpt")
@@ -56,7 +57,12 @@ class TimmBackbone(nn.Module):
         Returns:
             feat -- (B, 2048, 7, 7) feature map
         """
-        return self.adapter(self.body.forward_features(x))
+        feat = self.body.forward_features(x)
+        if feat.ndim == 4 and feat.shape[-1] == self.body.num_features: #Swin / Swin V2 return (B, H, W, C) 
+            feat = feat.permute(0, 3, 1, 2).contiguous()  # -> (B, C, H, W) to match other architectures
+        return self.adapter(feat)
+
+        
 
 
 def _load_arctic_backbone(backbone: "TimmBackbone") -> None:

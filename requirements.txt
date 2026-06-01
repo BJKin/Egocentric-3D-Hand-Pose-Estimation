@@ -8,6 +8,7 @@ loguru
 smplx==0.1.28
 chumpy
 timm
+PyWavelets   # required by the vendored Wave-ViT backbone (wavelet DWT ops in src/torch_wavelets.py)
 tensorboard
 tqdm
 pandas<2.0

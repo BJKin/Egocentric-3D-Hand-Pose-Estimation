@@ -31,8 +31,8 @@ NUM_WORKERS = 4
 LOG_EVERY = 50
 SEED = 1
 
-# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "mobilevit_s"
+# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s, swinv2_b
+BACKBONE = "swinv2_b"
 # possible training sets: ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset
 TRAIN_DATASETS = [ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset]
 

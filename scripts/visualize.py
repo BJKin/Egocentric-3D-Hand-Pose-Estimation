@@ -56,9 +56,9 @@ DATASETS = {
     "egoexo":       lambda: EgoExo4DDataset(split="val"),
 }
 
-# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "mobilevit_s"
-CKPT = Path("../logs/mobilevit_s/0530-2320_bs8_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
+# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s, swinv2_b
+BACKBONE = "swinv2_b"
+CKPT = Path("../logs/swinv2_b/0601-0917_bs8_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
 SOURCE = "pred"               # "pred" (model output) or "gt" (ground truth mesh)
 SHUFFLE = False               # pick a random sample per dataset instead of the first
 SEED = 0

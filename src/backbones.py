@@ -1,7 +1,11 @@
+"""
+Image backbones, all sourced from timm (Hugging Face).
+"""
+from pathlib import Path
+import timm
 import torch
 import torch.nn as nn
-import timm
-
+from loguru import logger
 
 _TIMM_MODELS = {
     "resnet50": "resnet50.tv2_in1k",
@@ -10,6 +14,7 @@ _TIMM_MODELS = {
     "mobilenet_v3_l": "mobilenetv3_large_100.miil_in21k_ft_in1k",
     "convnext_l": "convnext_large.fb_in22k_ft_in1k",
     "mobilevit_s": "mobilevit_s.cvnets_in1k",
+    "swinv2_b": "swinv2_cr_tiny_ns_224.sw_in1k",
     "swin_tiny_patch4_window7_224": "swin_tiny_patch4_window7_224.ms_in1k",
 }
 
@@ -139,6 +144,18 @@ class WaveViTBackbone(nn.Module):
             x = x.reshape(bsz, H, W, -1).permute(0, 3, 1, 2).contiguous()
         return self.adapter(x)
 
+def _load_arctic_backbone(backbone: "TimmBackbone") -> None:
+    """
+    Initializes a resnet50 backbone in place from the ARCTIC checkpoint.
+
+    Arguments:
+        backbone -- a resnet50 TimmBackbone to load the ARCTIC weights into
+    """
+    sd = torch.load(ARCTIC_CKPT, map_location="cpu")["state_dict"]
+    remapped = {f"body.{k[len('model.backbone.'):]}": v
+                for k, v in sd.items() if k.startswith("model.backbone.")}
+    backbone.load_state_dict(remapped, strict=False)
+    logger.info(f"loaded {len(remapped)} ARCTIC backbone keys from {ARCTIC_CKPT}")
 
 def build_backbone(name: str, pretrained: bool = True) -> nn.Module:
 
@@ -156,8 +173,8 @@ def build_backbone(name: str, pretrained: bool = True) -> nn.Module:
     if name == "wave_vit_s":
         return WaveViTBackbone(pretrained=pretrained)
     if name == "resnet50-arctic" and pretrained:
-        backbone = TimmBackbone(_TIMM_MODELS[name], pretrained=False)
+        backbone = TimmBackbone(name, pretrained=False)
         _load_arctic_backbone(backbone)
         return backbone
-    return TimmBackbone(_TIMM_MODELS[name], pretrained)
+    return TimmBackbone(name, pretrained)
 

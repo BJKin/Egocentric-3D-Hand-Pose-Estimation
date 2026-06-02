@@ -8,9 +8,8 @@ Loads a WildHands checkpoint and runs the model over four eval datasets:
   egoexo         - Ego-Exo4D val (3D + 2D, right hand only)
 
 Reports per dataset metrics where applicable:
-  mpjpe.ra       - root-aligned mean per joint position error (MPJPE), mm
-  mpjpe.pa.ra    - procrustes-aligned root-aligned MPJPE, mm
-  mrrpe.rl       - mean relative root position error between hands, mm
+  mpjpe          - root-aligned mean per joint position error (MPJPE), mm
+  mrrpe          - mean relative root position error between hands, mm
   pix_err        - pixel error for each joint in the IMG_RES patch, px
 
 Metrics are averaged with np.nanmean across samples and then across hands.
@@ -40,16 +39,16 @@ IMG_RES = 224
 OUT_CSV = Path("../results/ablation.csv") 
 
 EVAL_DATASETS = {
-    "assembly":     (lambda: AssemblyDataset(split="val"),     ("mpjpe.ra", "mpjpe.pa.ra", "mrrpe.rl", "pix_err")),
-    "h2o":          (lambda: H2ODataset(split="val"),          ("mpjpe.ra", "mpjpe.pa.ra", "mrrpe.rl", "pix_err")),
+    "assembly":     (lambda: AssemblyDataset(split="val"),     ("mpjpe", "mrrpe", "pix_err")),
+    "h2o":          (lambda: H2ODataset(split="val"),          ("mpjpe", "mrrpe", "pix_err")),
     "epic_handkps": (lambda: EPICHandKpsDataset(split="test"), ("pix_err",)),
-    "egoexo":       (lambda: EgoExo4DDataset(split="val"),     ("mpjpe.ra", "mpjpe.pa.ra", "pix_err")),
-    "arctic":       (lambda: ArcticDataset(split="val"),       ("mpjpe.ra", "mpjpe.pa.ra", "mrrpe.rl", "pix_err")),
+    "egoexo":       (lambda: EgoExo4DDataset(split="val"),     ("mpjpe", "pix_err")),
+    "arctic":       (lambda: ArcticDataset(split="val"),       ("mpjpe", "mrrpe", "pix_err")),
 }
 
-# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s
-BACKBONE = "mobilevit_s"
-CKPT = Path("../logs/mobilevit_s/0530-2320_bs8_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
+# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s, swinv2_b, swin_tiny_patch4_window7_224, wave_vit_s
+BACKBONE = "wave_vit_s"
+CKPT = Path("../logs/wave_vit_s/0531-0325_bs16_lr1e-05_ep100_seed1/checkpoints/best.ckpt")
 
 BATCH_SIZE = 32
 
@@ -84,9 +83,10 @@ def evaluate(model: WildHands, dataset, metric_names, device: torch.device, batc
         results -- dict mapping metric_name to float
     """
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=(device.type == "cuda"))
-    per_sample = {m: {"r": [], "l": []} for m in metric_names if m != "mrrpe.rl"}
-    if "mrrpe.rl" in metric_names:
-        per_sample["mrrpe.rl"] = []
+    per_sample = {m: {"r": [], "l": []} for m in metric_names if m != "mrrpe"}
+    if "mrrpe" in metric_names:
+        per_sample["mrrpe"] = []
+
 
     for inputs, targets, meta_info in loader:
         inputs = {k: v.to(device) if torch.is_tensor(v) else v for k, v in inputs.items()}
@@ -101,18 +101,16 @@ def evaluate(model: WildHands, dataset, metric_names, device: torch.device, batc
             jv2d = targets[f"joints_valid_{side}"]
             jv3d = targets.get(f"joints3d_valid_{side}", jv2d)
 
-            if "mpjpe.ra" in metric_names:
-                per_sample["mpjpe.ra"][side].extend(M.mpjpe_ra(pred_j3d, gt_j3d, jv3d).tolist())
-            if "mpjpe.pa.ra" in metric_names:
-                per_sample["mpjpe.pa.ra"][side].extend(M.mpjpe_pa_ra(pred_j3d, gt_j3d, jv3d).tolist())
+            if "mpjpe" in metric_names:
+                per_sample["mpjpe"][side].extend(M.mpjpe(pred_j3d, gt_j3d, jv3d).tolist())
             if "pix_err" in metric_names:
                 pred_pix = unormalize_kp2d(pred[f"mano.j2d.norm.{side}"], IMG_RES)
                 gt_pix = unormalize_kp2d(targets[f"mano.j2d.norm.{side}"], IMG_RES)
                 per_sample["pix_err"][side].extend(M.pix_err(pred_pix, gt_pix, jv2d).tolist())
 
-        if "mrrpe.rl" in metric_names:
+        if "mrrpe" in metric_names:
             valid = targets["right_valid"] * targets["left_valid"]
-            per_sample["mrrpe.rl"].extend(M.mrrpe_rl(
+            per_sample["mrrpe"].extend(M.mrrpe(
                 pred["mano.j3d.cam.r"][:, 0], pred["mano.j3d.cam.l"][:, 0],
                 targets["mano.j3d.full.r"][:, 0],
                 targets["mano.j3d.full.l"][:, 0],
@@ -121,13 +119,14 @@ def evaluate(model: WildHands, dataset, metric_names, device: torch.device, batc
 
     results = {}
     for m in metric_names:
-        if m == "mrrpe.rl":
+        if m == "mrrpe":
             results[m] = float(np.nanmean(per_sample[m])) if per_sample[m] else float("nan")
         else:
             r_mean = float(np.nanmean(per_sample[m]["r"])) if per_sample[m]["r"] else float("nan")
             l_mean = float(np.nanmean(per_sample[m]["l"])) if per_sample[m]["l"] else float("nan")
             hand_means = [x for x in (r_mean, l_mean) if not np.isnan(x)]
             results[m] = float(np.mean(hand_means)) if hand_means else float("nan")
+
     return results
 
 

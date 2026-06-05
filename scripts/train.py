@@ -31,7 +31,7 @@ NUM_WORKERS = 4
 LOG_EVERY = 50
 SEED = 1
 
-# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s, swinv2_b
+# possible backbones: resnet50, resnet50-arctic, resnet101, mobilenet_v3_l, convnext_l, mobilevit_s, swinv2_tiny, swin_tiny
 BACKBONE = "swinv2_b"
 # possible training sets: ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset
 TRAIN_DATASETS = [ArcticDataset, AssemblyDataset, EPICGraspDataset, EPICSegDataset, Ego4DGraspDataset, Ego4DSegDataset]
@@ -69,8 +69,7 @@ def forward_step(model: WildHands, mano_r, mano_l, batch: tuple, device: torch.d
     return loss_dict, total, inputs["img"].shape[0]
 
 
-def validate(model: WildHands, mano_r, mano_l, loader: DataLoader,
-             device: torch.device) -> tuple:
+def validate(model: WildHands, mano_r, mano_l, loader: DataLoader, device: torch.device) -> tuple:
     """
     Runs the model over the validation set and returns the average weighted loss
     plus the average of each loss term.

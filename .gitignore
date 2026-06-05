@@ -148,6 +148,8 @@ tensorboard/
 *.tgz
 *.7z
 *.rar
+archived/
+gt_samples/
 
 # =============================================================================
 # Project scratch

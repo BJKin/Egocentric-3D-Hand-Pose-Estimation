@@ -14,8 +14,8 @@ _TIMM_MODELS = {
     "mobilenet_v3_l": "mobilenetv3_large_100.miil_in21k_ft_in1k",
     "convnext_l": "convnext_large.fb_in22k_ft_in1k",
     "mobilevit_s": "mobilevit_s.cvnets_in1k",
-    "swinv2_b": "swinv2_cr_tiny_ns_224.sw_in1k",
-    "swin_tiny_patch4_window7_224": "swin_tiny_patch4_window7_224.ms_in1k",
+    "swinv2_tiny": "swinv2_cr_tiny_ns_224.sw_in1k",
+    "swin_tiny": "swin_tiny_patch4_window7_224.ms_in1k",
 }
 
 ARCTIC_CKPT = Path("../data_reduced/arctic/arctic_sf_allocentric/last.ckpt")
